@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forecast dynamic chart done version</title>
+</head>
+
+<body>
+
+    <div style="display: flex; justify-content: center; margin: 20px;">
+        <button onclick="forecastInfo('houseData')">
+            Houses
+        </button>
+        <button onclick="forecastInfo('unitData')">
+            Units
+        </button>
+    </div>
+    
+    <p id="testForecast"></p>
+
+    <div class="table-responsive">
+        <canvas id="forecastChart" style="height:600px" class="table"></canvas>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+
+            function forecastInfo(main){ 
+
+            //JSON connect
+            $.getJSON("123testForecastData.json", function( data ) {
+
+            var model = data[main]
+
+            const forecast = document.getElementById('forecastChart').getContext('2d');
+
+            // Mixed chart
+            const forecastChart = new Chart(forecast, {
+            type: 'bar',
+            data: {
+
+                labels: data['forecastData']['years'],
+
+                datasets: [
+                    {
+                    type: 'line',
+                    label: 'Typical price',
+                    data: data['forecastData']['typicalPriceData'],
+                    yAxisID: 'A',
+                    // Style line chart
+                    borderColor: data['forecastData']['linePriceColor'],
+                    borderWidth: 5,
+                    fill: false
+                    },
+
+                    {
+                    type: 'line',
+                    label: 'forecastPrognose',
+                    data: data['forecastData']['forecastHighData'],
+                    // Style line chart
+                    backgroundColor: 'rgba(55, 173, 221,  0.6)',
+                    borderColor: 'rgba(55, 173, 221,  0',
+                    fill: false,
+                    pointRadius: 0
+                    },
+
+                    {
+                    type: 'line',
+                    label: 'forecastPrognose',
+                    data: data['forecastData']['forecastLowData'],
+                    // Style line chart
+                    backgroundColor: 'rgba(55, 173, 221,  0.6)',
+                    borderColor: 'rgba(55, 173, 221,  0',
+                    fill: '-1',
+                    pointRadius: 0,
+                    },
+
+                    {
+                    type: 'bar',
+                    label: 'Sales',
+                    data: data['forecastData']['salesData'],
+                    yAxisID: 'B',
+                    // Style line chart
+                    backgroundColor: data['forecastData']['barSalesColor'],
+                    fill: false,
+                    }
+
+                ],
+            },
+
+
+            // Options
+            options: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    align: 'center',
+                    
+                    
+                    labels: {
+                        boxWidth: 2,
+                        padding: 15,
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: 15, 
+
+                        filter: function(item, chart){
+                            return !item.text.includes('forecastPrognose');
+                        },
+                        
+                    }
+                },
+                scales: {
+                    yAxes: [{
+                        id:'A',
+                        type: 'linear',
+                        position: 'right',
+                        ticks: {
+                                    stepSize: 100000,
+                                    callback: function(value) {
+                                        var ranges = [
+                                            { divider: 1e6, suffix: 'M' },
+                                            { divider: 1e3, suffix: 'K' }
+                                        ];
+                                        function formatNumber(n) {
+                                            for (var i = 0; i < ranges.length; i++) {
+                                            if (n >= ranges[i].divider) {
+                                                return (n / ranges[i].divider).toString() + ranges[i].suffix;
+                                            }
+                                            }
+                                            return n;
+                                        }
+                                        return '$' + formatNumber(value);
+                                    }
+                                },
+                        gridLines: {
+                            display: false
+                        }
+                    },{
+                        id: 'B',
+                        type: 'linear',
+                        position: 'left',
+                    }],
+                }
+            }
+            
+        });
+
+        for (BR in model) {
+                var newDataset = {
+                    type: 'line',
+                    label: BR,
+                    data: [],
+                    fill: false, 
+                    borderDash: [5, 5],
+                    borderColor: data['forecastData']['lineBRColor'],
+                    order: 3
+                };
+
+                for (value in model[BR]) {
+                    newDataset.data.push(model[BR][value]);
+                }
+
+                forecastChart.config.data.datasets.push(newDataset);
+
+            }
+
+            forecastChart.update();
+
+    });
+
+}
+
+$( document ).ready(function() {
+    forecastInfo('houseData');
+        });
+
+    </script>
+
+</body>
+</html>
